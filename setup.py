@@ -24,5 +24,6 @@ setup(
         'sortedcontainers>=2.0',
         'minidump==0.0.10',
         'pyxbe==0.0.2',
-    ]
+    ],
+    package_data={'cle': "py.typed"}
 )
