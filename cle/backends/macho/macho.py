@@ -7,6 +7,8 @@ import struct
 import sys
 from io import BytesIO
 import archinfo
+from cle.backends.macho.relocations import GenericMachORelocation
+from cle.backends.macho.stubparsing import StubParser
 
 from .section import MachOSection
 from .symbol import SymbolTableSymbol
@@ -159,6 +161,22 @@ class MachO(Backend):
         self._parse_symbols(binary_file)
         self._parse_mod_funcs()
         self.mapped_base = self._mapped_base
+        if kwargs.get("bind_early"):
+            self.do_binding()
+
+        if kwargs.get("gen_relocs"):
+            if not kwargs.get("bind_early"):
+                l.warning("Binding is currently required for relocs, performing binding now")
+                self.do_binding()
+            self._gen_relocs()
+        if kwargs.get("stubs_early"):
+            if not self.binding_done:
+                l.warning("Stubs require binding, this will be done now and can take a while")
+                self.do_binding()
+            StubParser.analyze(self)
+
+
+
 
 
     @staticmethod
@@ -729,6 +747,14 @@ class MachO(Backend):
         Syntactic sugar for get_segment_by_name
         """
         return self.get_segment_by_name(item)
+
+    def _gen_relocs(self):
+        for symbol in self.symbols:
+            if symbol.is_import and symbol.bind_xrefs:
+                if len(symbol.bind_xrefs) > 1:
+                    l.warning("Symbol %s has more than one bind xref %s" % (symbol, symbol.bind_xrefs))
+                r = GenericMachORelocation(self, symbol, symbol.bind_xrefs[0])
+                self.relocs.append(r)
 
 
 register_backend('mach-o', MachO)

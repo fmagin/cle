@@ -1,6 +1,11 @@
 from enum import Enum
 import logging
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cle import Backend
+
 from ..address_translator import AT
 
 l = logging.getLogger('cle.backends.symbol')
@@ -48,10 +53,11 @@ class Symbol:
     :ivar str resolvewith:  The name of the library we must use to resolve this symbol, or None if none is required.
     """
 
-    def __init__(self, owner, name, relative_addr, size, sym_type):
+    def __init__(self, owner: 'Backend', name, relative_addr, size, sym_type):
         """
         Not documenting this since if you try calling it, you're wrong.
         """
+        self.symbol_stubs = None
         self.owner = owner
         self.name = name
         self.relative_addr = relative_addr

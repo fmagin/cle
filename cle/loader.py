@@ -6,6 +6,7 @@ from collections import OrderedDict
 
 import archinfo
 from archinfo.arch_soot import ArchSoot
+from cle.backends.macho.macho import MachO
 
 from .address_translator import AT
 from .utils import ALIGN_UP, key_bisect_insort_left, key_bisect_floor_key
@@ -470,6 +471,16 @@ class Loader:
                 sym = so.get_symbol(thing)
                 if sym is None:
                     continue
+                if type(self.main_object) is MachO and type(sym) is list:
+                    if len(sym) == 0:
+                        continue
+                    l.warning("Mach-O doesn't have unique symbols technically, using first one if there is only one")
+                    if len(sym) > 1:
+                        l.error("Symbol name %s has multiple symbols %s" % (thing, sym))
+                        raise Exception()
+                    else:
+                        sym = sym[0]
+
 
                 if sym.is_import:
                     if sym.resolvedby is not None:

@@ -99,7 +99,7 @@ class Backend:
         self.relocs = []
         self.irelatives = []    # list of tuples (resolver, destination), dest w/o rebase
         self.jmprel = {}
-        self.arch = None
+        self.arch = None # type: Optional[archinfo.Arch]
         self.os = None  # Let other stuff override this
         self.engine_preset = None
         self._symbol_cache = {}

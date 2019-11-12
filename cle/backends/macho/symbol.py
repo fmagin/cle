@@ -2,8 +2,14 @@
 
 # This file is part of Mach-O Loader for CLE.
 # Contributed December 2016 by Fraunhofer SIT (https://www.sit.fraunhofer.de/en/) and updated in September 2019.
+from cle.backends.macho.relocations import GenericMachORelocation
 
 from .. import Symbol, SymbolType
+
+import typing
+
+if typing.TYPE_CHECKING:
+    from cle.backends import MachO
 
 import logging
 l = logging.getLogger('cle.backends.macho.symbol')
@@ -54,7 +60,7 @@ class SymbolTableSymbol(AbstractMachOSymbol):
     Much of the code below is based on heuristics as official documentation is sparse, consider yourself warned!
     """
 
-    def __init__(self, owner, symtab_offset, n_strx, n_type, n_sect, n_desc, n_value):
+    def __init__(self, owner: 'MachO', symtab_offset, n_strx, n_type, n_sect, n_desc, n_value):
         # Note 1: Setting size = owner.arch.bytes has been directly taken over from the PE backend,
         # there is no meaningful definition of a symbol's size so I assume the size of an address counts here
         # Note 2: relative_addr will be the address of a symbols __got or __nl_symbol_ptr entry, not the address of a stub
@@ -140,10 +146,6 @@ class SymbolTableSymbol(AbstractMachOSymbol):
     def rebased_addr(self):
         l.warning("Rebasing not implemented for Mach-O")
         return self.linked_addr
-
-    def resolve(self, obj):
-        # Incompatibility to CLE
-        pass  # Mach-O cannot be resolved like this as the whole binary is involved
 
     # real symbols have properties, mach-o symbols have plenty of them:
     @property
@@ -271,10 +273,6 @@ class BindingSymbol(AbstractMachOSymbol):
     def rebased_addr(self):
         l.warning("Rebasing not implemented for Mach-O")
         return self.linked_addr
-
-    def resolve(self, obj):
-        # Incompatibility to CLE
-        pass  # Mach-O cannot be resolved like this as the whole binary is involved
 
     def demangled_name(self):
         return self.name  # it is not THAT easy with Mach-O
